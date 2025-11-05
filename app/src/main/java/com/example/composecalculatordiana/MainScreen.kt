@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 
 @Composable
@@ -63,7 +62,7 @@ fun MainScreen() {
                                             "/" -> logic.divide(firstNumber!!, secondNumber).toString()
                                             else -> "0"
                                         }
-                                    } catch (e: Exception) {
+                                    } catch (_: Exception) {
                                         "Error"
                                     }
                                 }
