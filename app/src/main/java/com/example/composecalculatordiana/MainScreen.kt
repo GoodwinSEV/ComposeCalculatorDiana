@@ -1,76 +1,82 @@
 package com.example.composecalculatordiana
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun MainScreen() {
-    var display by remember { mutableStateOf("0") }
-    var firstNumber by remember { mutableStateOf<Double?>(null) }
-    var operator by remember { mutableStateOf<String?>(null) }
-
     val logic = remember { CalculatorLogic() }
+    var input by remember { mutableStateOf("0") }
+    var operator by remember { mutableStateOf<String?>(null) }
+    var firstNumber by remember { mutableStateOf<Double?>(null) }
 
-    Column(
+    val beigeBackground = Color(0xFFF7F3E9)
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .padding(top = 60.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .background(beigeBackground)
+            .padding(16.dp)
     ) {
-        CalculatorDisplay(value = display)
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CalculatorDisplay(input)
 
-        val buttons = listOf(
-            listOf("7", "8", "9", "/"),
-            listOf("4", "5", "6", "*"),
-            listOf("1", "2", "3", "-"),
-            listOf("0", "C", "=", "+")
-        )
+            val buttons = listOf(
+                listOf("7", "8", "9", "/"),
+                listOf("4", "5", "6", "*"),
+                listOf("1", "2", "3", "-"),
+                listOf("0", ".", "C", "+"),
+                listOf("=")
+            )
 
-        buttons.forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                row.forEach { symbol ->
-                    CalculatorButton(
-                        symbol = symbol,
-                        modifier = Modifier.weight(1f).height(80.dp)
-                    ) {
-                        when (symbol) {
-                            "C" -> {
-                                display = "0"
-                                firstNumber = null
-                                operator = null
-                            }
-                            "+", "-", "*", "/" -> {
-                                firstNumber = display.toDoubleOrNull()
-                                operator = symbol
-                                display = "0"
-                            }
-                            "=" -> {
-                                val secondNumber = display.toDoubleOrNull()
-                                if (firstNumber != null && secondNumber != null && operator != null) {
-                                    display = try {
-                                        when (operator) {
-                                            "+" -> logic.add(firstNumber!!, secondNumber).toString()
-                                            "-" -> logic.subtract(firstNumber!!, secondNumber).toString()
-                                            "*" -> logic.multiply(firstNumber!!, secondNumber).toString()
-                                            "/" -> logic.divide(firstNumber!!, secondNumber).toString()
-                                            else -> "0"
+            buttons.forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    row.forEach { label ->
+                        CalculatorButton(label) {
+                            when (label) {
+                                "C" -> {
+                                    input = "0"
+                                    operator = null
+                                    firstNumber = null
+                                }
+                                in listOf("+", "-", "*", "/") -> {
+                                    operator = label
+                                    firstNumber = input.toDoubleOrNull()
+                                    input += label
+                                }
+                                "=" -> {
+                                    val parts = input.split("+", "-", "*", "/")
+                                    if (parts.size == 2) {
+                                        val secondNumber = parts[1].toDoubleOrNull()
+                                        val result = when (operator) {
+                                            "+" -> logic.add(firstNumber ?: 0.0, secondNumber ?: 0.0)
+                                            "-" -> logic.subtract(firstNumber ?: 0.0, secondNumber ?: 0.0)
+                                            "*" -> logic.multiply(firstNumber ?: 0.0, secondNumber ?: 0.0)
+                                            "/" -> logic.divide(firstNumber ?: 0.0, secondNumber ?: 0.0)
+                                            else -> Double.NaN
                                         }
-                                    } catch (_: Exception) {
-                                        "Error"
+                                        input = if (result.isNaN()) "Ошибка" else result.toString()
+                                        operator = null
+                                        firstNumber = null
                                     }
                                 }
-                                firstNumber = null
-                                operator = null
-                            }
-                            else -> {
-                                display = if (display == "0") symbol else display + symbol
+                                else -> {
+                                    if (input == "0") input = label else input += label
+                                }
                             }
                         }
                     }
@@ -79,4 +85,5 @@ fun MainScreen() {
         }
     }
 }
+
 
